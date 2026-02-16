@@ -347,7 +347,9 @@ function getWeekStart(date) {
     const d = new Date(date);
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Start on Monday
-    return new Date(d.setDate(diff));
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0); // Normalize to midnight to avoid time-based exclusions
+    return d;
 }
 
 function isSameMonth(date1, date2) {
