@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Metadata -->
+    <title>FinTrack Cloud - Personal Finance Tracker</title>
+    <meta name="description"
+        content="Smart expense tracking with WhatsApp reports. Track income, expenses, and manage budgets with beautiful analytics. Built with Firebase.">
+    <meta name="keywords"
+        content="expense tracker, finance app, budget manager, Firebase, personal finance, money management">
+    <meta name="author" content="FinTrack Cloud">
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:title" content="FinTrack Cloud - Personal Finance Tracker">
+    <meta property="og:description"
+        content="Track expenses, manage budgets, and get weekly financial reports via WhatsApp. Simple, secure, and free.">
+    <meta property="og:image" content="https://expense-tracker-2026-787c9.web.app/preview.svg">
+    <meta property="og:url" content="https://expense-tracker-2026-787c9.web.app">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FinTrack Cloud - Smart Expense Tracking">
+    <meta name="twitter:description" content="Beautiful expense tracker with WhatsApp reports. Built with Firebase.">
+    <meta name="twitter:image" content="https://expense-tracker-2026-787c9.web.app/preview.svg">
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Auth View (Login/Signup) -->
+    <div id="authView" class="auth-container">
+        <div class="auth-card">
+            <div class="app-branding">
+                <h1>💰 FinTrack Cloud</h1>
+                <p class="auth-subtitle">Smart Personal Finance Tracker</p>
+                <p class="firebase-badge">🔥 Built with Firebase</p>
+            </div>
+
+            <div id="authTabs" class="auth-tabs">
+                <button id="loginTab" class="tab-btn active">Login</button>
+                <button id="signupTab" class="tab-btn">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+                <p id="loginError" class="error-message"></p>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" required placeholder="Min. 6 characters">
+                </div>
+                <div class="form-group">
+                    <label for="signupPasswordConfirm">Confirm Password</label>
+                    <input type="password" id="signupPasswordConfirm" required placeholder="Re-enter password">
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+                <p id="signupError" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard View (Hidden by default, shown after login) -->
+    <div id="dashboardView" class="dashboard-container hidden">
+        <header class="dashboard-header">
+            <h1>💰 Expense Tracker</h1>
+            <div class="header-actions">
+                <span id="userEmail" class="user-email"></span>
+                <button id="exportPdfBtn" class="btn-secondary" title="Download Statement">
+                    📄 Export PDF
+                </button>
+                <button id="logoutBtn" class="btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="summary-cards">
+            <div class="card">
+                <h3>Today</h3>
+                <p class="amount" id="todayAmount">₹0.00</p>
+            </div>
+            <div class="card">
+                <h3>Weekly</h3>
+                <p class="amount" id="weeklyAmount">₹0.00</p>
+            </div>
+            <div class="card card-monthly">
+                <h3>Monthly Breakdown</h3>
+                <p class="amount" id="monthlyTotal">₹0.00</p>
+                <div class="breakdown">
+                    <div class="spend">
+                        <span>Spend:</span>
+                        <span id="monthlySpend" class="value-red">₹0.00</span>
+                    </div>
+                    <div class="received">
+                        <span>Received:</span>
+                        <span id="monthlyReceived" class="value-green">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pie Chart -->
+        <section class="chart-section">
+            <h2>📊 Spend Analysis</h2>
+            <div class="chart-container">
+                <canvas id="spendChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Add Transaction Form -->
+        <section class="form-section">
+            <h2>Add Transaction</h2>
+            <form id="transactionForm" class="transaction-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transactionType">Type</label>
+                        <select id="transactionType" class="glass-input" required>
+                            <option value="expense">💸 Expense</option>
+                            <option value="income">💰 Income</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" step="0.01" id="amount" required placeholder="Enter amount" min="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" id="categoryGroup">
+                        <label for="category">Category</label>
+                        <input type="text" id="category" placeholder="Food, Travel, Shopping, etc.">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-with-manage">
+                        <label for="paymentSource">Payment Source</label>
+                        <select id="paymentSource" required>
+                            <!-- Will be populated dynamically -->
+                            <option value="Cash">Cash</option>
+                            <option value="SBI Bank">SBI Bank</option>
+                            <option value="IPPB Bank">IPPB Bank</option>
+                            <option value="SBI e-Rupee">SBI e-Rupee</option>
+                        </select>
+                        <button type="button" class="manage-methods-btn" id="manageMethodsBtn">
+                            ⚙️ Manage Methods
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" placeholder="Optional notes">
+                </div>
+                <button type="submit" class="btn-primary">Add Transaction</button>
+            </form>
+        </section>
+
+        <!-- Filter Buttons -->
+        <section class="filter-section">
+            <h2>Transactions</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="month">This Month</button>
+                <button class="filter-btn" data-filter="week">This Week</button>
+                <button class="filter-btn" data-filter="all">All</button>
+                <button id="toggleListBtn" class="btn-toggle">Show All</button>
+            </div>
+        </section>
+
+        <!-- Transaction List (Hidden by default) -->
+        <section id="transactionList" class="transaction-list hidden">
+            <div id="transactionItems"></div>
+            <p id="noTransactions" class="no-data">No transactions to display.</p>
+        </section>
+    </div>
+
+    <!-- Firebase SDKs (Modular v9+) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Firebase configuration - ACTUAL PROJECT CREDENTIALS
+        const firebaseConfig = {
+            apiKey: "AIzaSyDklIde0JrqHByJLHmj_guK9U-NlJeU9pw",
+            authDomain: "expense-tracker-2026-787c9.firebaseapp.com",
+            projectId: "expense-tracker-2026-787c9",
+            storageBucket: "expense-tracker-2026-787c9.firebasestorage.app",
+            messagingSenderId: "548300895580",
+            appId: "1:548300895580:web:c083bee1b2367431927d99"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.auth = getAuth(app);
+        window.db = getFirestore(app);
+    </script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+    <!-- jsPDF & AutoTable for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Application Scripts -->
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/form-init.js"></script>
+
+    <!-- Footer with Legal Links -->
+    <footer class="app-footer">
+        <p><strong>FinTrack Cloud</strong> v1.0.0 | Last Updated: February 2026</p>
+        <p>Built with <a href="https://firebase.google.com" target="_blank" rel="noopener">Firebase</a> | Hosted on
+            Firebase Hosting</p>
+        <div class="legal-links">
+            <a href="/privacy.html">Privacy Policy</a> •
+            <a href="/terms.html">Terms of Service</a> •
+            Contact: <a href="mailto:support@fintrackcloud.app">support@fintrackcloud.app</a>
+        </div>
+    </footer>
+</body>
+
+</html>

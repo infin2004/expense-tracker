@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User document - for paymentMethods and lastReportDate
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow create with email and optional paymentMethods
+      allow create: if request.auth != null && request.auth.uid == userId &&
+        request.resource.data.keys().hasAll(['email']) &&
+        (
+          // paymentMethods is optional on create, but if provided must be valid
+          !request.resource.data.keys().hasAny(['paymentMethods']) ||
+          (
+            request.resource.data.paymentMethods is list &&
+            request.resource.data.paymentMethods.size() <= 20 &&
+            request.resource.data.paymentMethods.size() >= 0  // Allow empty array
+          )
+        );
+      
+      // Allow update with relaxed validation
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        // Validate paymentMethods array if being updated
+        (
+          !request.resource.data.keys().hasAny(['paymentMethods']) ||
+          (
+            request.resource.data.paymentMethods is list &&
+            request.resource.data.paymentMethods.size() <= 20 &&
+            request.resource.data.paymentMethods.size() >= 0  // Allow empty array
+          )
+        ) &&
+        // Validate weekly report fields if being updated
+        (
+          !request.resource.data.keys().hasAny(['lastReportWeek']) ||
+          (request.resource.data.lastReportWeek == null || 
+           (request.resource.data.lastReportWeek is string && 
+            request.resource.data.lastReportWeek.matches('^[0-9]{4}-W[0-9]{2}$')))
+        ) &&
+        (
+          !request.resource.data.keys().hasAny(['weeklyReportOptIn']) ||
+          request.resource.data.weeklyReportOptIn is bool
+        ) &&
+        (
+          !request.resource.data.keys().hasAny(['lastReportShownAt']) ||
+          (request.resource.data.lastReportShownAt == null || 
+           request.resource.data.lastReportShownAt is timestamp)
+        );
+    }
+  
+    // User can ONLY read/write their own transactions
+    match /users/{userId}/transactions/{transactionId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
