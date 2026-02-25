@@ -281,7 +281,7 @@ body {
     color: var(--text-primary);
 }
 
-.card-monthly .breakdown {
+.card .breakdown {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
@@ -858,8 +858,13 @@ body {
 
 /* Transaction Type Colors handled by ::before pseudo-element above */
 /* Dynamic Value Colors */
-.value-positive { color: var(--success-green) !important; }
-.value-negative { color: var(--danger-red) !important; }
+.value-positive {
+    color: var(--success-green) !important;
+}
+
+.value-negative {
+    color: var(--danger-red) !important;
+}
 
 /* Edit Transaction Form */
 .edit-form {
@@ -869,7 +874,8 @@ body {
     margin-bottom: 10px;
 }
 
-.edit-form input, .edit-form select {
+.edit-form input,
+.edit-form select {
     width: 100%;
 }
 
@@ -892,7 +898,8 @@ body {
 
 /* Fix Dropdown Options Visibility */
 option {
-    background-color: #1f2937; /* Dark Grey */
+    background-color: #1f2937;
+    /* Dark Grey */
     color: white;
 }
 
