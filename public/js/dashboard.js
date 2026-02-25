@@ -275,6 +275,7 @@ function updateSummaryCards() {
     // Today — Show ONLY expenses (spend), not net balance
     const todaySpend = calculateSpend(todayTransactions);
     todayAmount.textContent = formatCurrency(todaySpend);
+    todayAmount.classList.add('value-negative'); // Always red (it's spend)
 
     // Weekly — Net total + breakdown
     const weeklySum = calculateNetTotal(weekTransactions);

@@ -293,7 +293,18 @@ body {
 .breakdown>div {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.95rem;
+}
+
+.value-negative {
+    color: var(--danger-red);
+    font-weight: 600;
+}
+
+.value-positive {
+    color: var(--success-green);
+    font-weight: 600;
 }
 
 .value-red {
