@@ -35,6 +35,8 @@ const exportPdfBtn = document.getElementById('exportPdfBtn');
 // Summary card elements
 const todayAmount = document.getElementById('todayAmount');
 const weeklyAmount = document.getElementById('weeklyAmount');
+const weeklySpend = document.getElementById('weeklySpend');
+const weeklyReceived = document.getElementById('weeklyReceived');
 const monthlyTotal = document.getElementById('monthlyTotal');
 const monthlySpend = document.getElementById('monthlySpend');
 const monthlyReceived = document.getElementById('monthlyReceived');
@@ -44,6 +46,9 @@ const filterButtons = document.querySelectorAll('.filter-btn');
 
 // Cache for payment methods
 let cachedPaymentMethods = [];
+
+// Chart filter (independent from transaction list filter)
+let chartFilterPeriod = 'month';
 
 // ============================================
 // USER AUTHENTICATION EVENT
@@ -114,6 +119,15 @@ function initializeDashboard() {
     setTimeout(() => {
         checkAndShowWeeklyReport(window.auth, window.db);
     }, 2000); // Delay 2s to let dashboard load first
+
+    // Chart filter dropdown (independent from transaction list)
+    const chartFilter = document.getElementById('chartFilter');
+    if (chartFilter) {
+        chartFilter.addEventListener('change', (e) => {
+            chartFilterPeriod = e.target.value;
+            updateSpendChart();
+        });
+    }
 }
 
 // ============================================
@@ -258,15 +272,18 @@ function updateSummaryCards() {
     const weekTransactions = filterByDate(allTransactions, 'week', now);
     const monthTransactions = filterByDate(allTransactions, 'month', now);
 
-    // Today
-    const todaySum = calculateNetTotal(todayTransactions);
-    todayAmount.textContent = formatCurrency(todaySum);
-    updateValueColor(todayAmount, todaySum);
+    // Today — Show ONLY expenses (spend), not net balance
+    const todaySpend = calculateSpend(todayTransactions);
+    todayAmount.textContent = formatCurrency(todaySpend);
 
-    // Weekly
+    // Weekly — Net total + breakdown
     const weeklySum = calculateNetTotal(weekTransactions);
+    const weeklySpendValue = calculateSpend(weekTransactions);
+    const weeklyReceivedValue = calculateReceived(weekTransactions);
     weeklyAmount.textContent = formatCurrency(weeklySum);
     updateValueColor(weeklyAmount, weeklySum);
+    weeklySpend.textContent = formatCurrency(weeklySpendValue);
+    weeklyReceived.textContent = formatCurrency(weeklyReceivedValue);
 
     // Monthly Breakdown
     const monthlySum = calculateNetTotal(monthTransactions);
@@ -501,7 +518,7 @@ toggleListBtn.addEventListener('click', () => {
 // SPEND ANALYSIS CHART (Chart.js)
 // ============================================
 function updateSpendChart() {
-    const filteredTransactions = filterByDate(allTransactions, currentFilter);
+    const filteredTransactions = filterByDate(allTransactions, chartFilterPeriod);
 
     // Aggregate POSITIVE amounts only (expenses) by category
     const categoryTotals = {};

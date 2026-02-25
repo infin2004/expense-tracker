@@ -95,12 +95,22 @@
         <!-- Summary Cards -->
         <section class="summary-cards">
             <div class="card">
-                <h3>Today</h3>
+                <h3>Spent Today</h3>
                 <p class="amount" id="todayAmount">₹0.00</p>
             </div>
-            <div class="card">
-                <h3>Weekly</h3>
+            <div class="card card-weekly">
+                <h3>Weekly Breakdown</h3>
                 <p class="amount" id="weeklyAmount">₹0.00</p>
+                <div class="breakdown">
+                    <div class="spend">
+                        <span>Spend:</span>
+                        <span id="weeklySpend" class="value-red">₹0.00</span>
+                    </div>
+                    <div class="received">
+                        <span>Received:</span>
+                        <span id="weeklyReceived" class="value-green">₹0.00</span>
+                    </div>
+                </div>
             </div>
             <div class="card card-monthly">
                 <h3>Monthly Breakdown</h3>
@@ -120,7 +130,13 @@
 
         <!-- Pie Chart -->
         <section class="chart-section">
-            <h2>📊 Spend Analysis</h2>
+            <div class="chart-header">
+                <h2>📊 Spend Analysis</h2>
+                <select id="chartFilter" class="glass-input chart-filter-select">
+                    <option value="week">This Week</option>
+                    <option value="month" selected>This Month</option>
+                </select>
+            </div>
             <div class="chart-container">
                 <canvas id="spendChart"></canvas>
             </div>
