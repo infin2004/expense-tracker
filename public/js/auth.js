@@ -2,10 +2,12 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
 
-import { doc, setDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { doc, setDoc, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 // DOM Elements
 const authView = document.getElementById('authView');
@@ -18,6 +20,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const userEmail = document.getElementById('userEmail');
 const loginError = document.getElementById('loginError');
 const signupError = document.getElementById('signupError');
+const googleBtn = document.getElementById('googleSignInBtn');
 
 // Auth state - will be set by onAuthStateChanged
 let currentUser = null;
@@ -120,6 +123,44 @@ logoutBtn.addEventListener('click', async () => {
         alert('Failed to logout. Please try again.');
     }
 });
+
+// ============================================
+// GOOGLE SIGN-IN HANDLER
+// ============================================
+const googleProvider = new GoogleAuthProvider();
+
+if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+        clearErrors();
+        try {
+            const result = await signInWithPopup(window.auth, googleProvider);
+            const user = result.user;
+
+            // Check if this is a first-time Google user
+            const userDocRef = doc(window.db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (!userDoc.exists()) {
+                // First time — create user document
+                await setDoc(userDocRef, {
+                    email: user.email,
+                    paymentMethods: [],
+                    createdAt: Timestamp.now(),
+                    weeklyReportOptIn: true,
+                    lastReportWeek: null,
+                    lastReportShownAt: null
+                });
+                console.log('[Auth] Google user document created');
+            }
+            // onAuthStateChanged will handle the redirect
+        } catch (error) {
+            console.error('Google Sign-In error:', error);
+            if (error.code !== 'auth/popup-closed-by-user') {
+                showError(loginError, 'Google Sign-In failed. Please try again.');
+            }
+        }
+    });
+}
 
 // ============================================
 // AUTH STATE OBSERVER
